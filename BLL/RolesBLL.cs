@@ -10,36 +10,25 @@ using System.Threading.Tasks;
 
 namespace RegistroADetalle.BLL
 {
-    public class UsuariosBLL
+    public class RolesBLL
     {
-        public static bool Guardar(Persona persona)
+        public static bool Guardar(Roles roles)
         {
-            bool paso = false;
-            Contexto contexto = new Contexto();
+            if (!Existe(roles.RolID))
+                return Insertar(roles);
+            else
+                return Modificar(roles);
 
-            try
-            {
-                if (contexto.Personas.Add(persona) != null)
-                    paso = contexto.SaveChanges() > 0;
-            }
-            catch (Exception)
-            {
-                throw;
-            }
-            finally
-            {
-                contexto.Dispose();
-            }
-            return paso;
+
         }
 
-        private static bool Insertar(Persona persona)
+        private static bool Insertar(Roles roles)
         {
             bool paso = false;
             Contexto contexto = new Contexto();
             try
             {
-                contexto.Personas.Add(persona);
+                contexto.Roles.Add(roles);
                 paso = contexto.SaveChanges() > 0;
             }
             catch (Exception)
@@ -54,14 +43,14 @@ namespace RegistroADetalle.BLL
             return paso;
         }
 
-        public static bool Modificar(Persona persona) 
+        public static bool Modificar(Roles roles)
         {
             bool paso = false;
             Contexto contexto = new Contexto();
 
             try
             {
-                contexto.Entry(persona).State = EntityState.Modified;
+                contexto.Entry(roles).State = EntityState.Modified;
                 paso = contexto.SaveChanges() > 0;
             }
             catch (Exception)
@@ -81,10 +70,10 @@ namespace RegistroADetalle.BLL
             Contexto contexto = new Contexto();
             try
             {
-                var persona = contexto.Personas.Find(id);
-                if (persona != null)
+                var roles = contexto.Roles.Find(id);
+                if (roles != null)
                 {
-                    contexto.Personas.Remove(persona);
+                    contexto.Entry(roles).State = EntityState.Deleted;
                     paso = contexto.SaveChanges() > 0;
                 }
             }
@@ -100,13 +89,13 @@ namespace RegistroADetalle.BLL
             return paso;
         }
 
-        public static Persona Buscar(int id)
+        public static Roles Buscar(int id)
         {
             Contexto contexto = new Contexto();
-            Persona persona;
+            Roles roles;
             try
             {
-                persona = contexto.Personas.Find(id);
+                roles = contexto.Roles.Include(e => e.Detalles).Where(p => p.RolID == id).SingleOrDefault();
             }
             catch (Exception)
             {
@@ -117,7 +106,7 @@ namespace RegistroADetalle.BLL
                 contexto.Dispose();
             }
 
-            return persona;
+            return roles;
         }
 
         public static bool Existe(int id)
@@ -126,7 +115,7 @@ namespace RegistroADetalle.BLL
             bool encontrado = false;
             try
             {
-                encontrado = contexto.Personas.Any(e => e.PersonaId == id);
+                encontrado = contexto.Roles.Any(e => e.RolID == id);
             }
             catch (Exception)
             {
@@ -140,13 +129,14 @@ namespace RegistroADetalle.BLL
             return encontrado;
         }
 
-        public static bool ExisteAlias(string buscaralias)
+        private static List<Roles> GetList(Expression<Func<Roles, bool>> criterio)
         {
+            List<Roles> lista = new List<Roles>();
             Contexto contexto = new Contexto();
-            bool encontrado = false;
+
             try
             {
-                encontrado = contexto.Personas.Any(e => e.Nombre == buscaralias);
+                lista = contexto.Roles.Where(criterio).ToList();
             }
             catch (Exception)
             {
@@ -156,17 +146,16 @@ namespace RegistroADetalle.BLL
             {
                 contexto.Dispose();
             }
-
-            return encontrado;
+            return lista;
         }
 
-        public static List<Persona> GetList(Expression<Func<Persona, bool>> criterio)
+        public static List<Roles> GetRoles()
         {
-            List<Persona> lista = new List<Persona>();
+            List<Roles> lista = new List<Roles>();
             Contexto contexto = new Contexto();
             try
             {
-                lista = contexto.Personas.Where(criterio).ToList();
+                lista = contexto.Roles.ToList();
             }
             catch (Exception)
             {
