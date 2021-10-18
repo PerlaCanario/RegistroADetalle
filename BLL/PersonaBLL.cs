@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace RegistroADetalle.BLL
 {
-    public class UsuariosBLL
+    public class PersonaBLL
     {
         public static bool Guardar(Persona persona)
         {
